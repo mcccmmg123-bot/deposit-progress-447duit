@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const REFRESH_MS = 10_000;
 
+const API_SECRET = "447duit123";
+
 // Daily Rescue Bonus
 const DAILY = { target: 500, reward: 50 };
 const DAILY_MILESTONES = [{ target: 500, reward: 50 }];
@@ -110,11 +112,16 @@ export default function Home() {
     try {
       const call = async (period) => {
         const res = await fetch(
-          `/api/deposit-progress?userId=${encodeURIComponent(
-            userId
-          )}&period=${period}`,
-          { cache: "no-store" }
-        );
+  `/api/deposit-progress?userId=${encodeURIComponent(
+    userId
+  )}&period=${period}`,
+  {
+    cache: "no-store",
+    headers: {
+      "x-api-secret": API_SECRET,
+    },
+  }
+);
         const json = await res.json();
         if (!res.ok || !json.success) {
           throw new Error(
@@ -149,16 +156,21 @@ export default function Home() {
   }, [activeId, fetchMissions]);
 
   const handleLoad = (e) => {
-    e.preventDefault();
-    const trimmed = inputId.trim();
-    if (!trimmed) {
-      setError("Please enter a userId");
-      return;
-    }
-    setToday(0);
-    setWeek(0);
-    setActiveId(trimmed);
-  };
+  e.preventDefault();
+
+  const trimmed = inputId
+    .trim()
+    .replace(/A/gi, "4");
+
+  if (!trimmed) {
+    setError("Please enter a userId");
+    return;
+  }
+
+  setToday(0);
+  setWeek(0);
+  setActiveId(trimmed);
+};
 
   // --- Daily status ---
   const dailyComplete = today >= DAILY.target;
